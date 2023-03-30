@@ -4,14 +4,29 @@ import { CreateUsers } from "./queries.js";
 
 const router = express.Router()
 
-router.post('/', async (req, res) => {
-    const { address, txhash, amount, numbers } = req.body;
-    const values = [address, txhash, amount, numbers];
+router.get('/', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM users');
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error getting users: ', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
-    pool.query(CreateUsers, values, (error, result) => {
-      if (error) throw error;
-      return result.status(201).json({ message: "User created" });
-  })
-})
+
+router.post('/', async (req, res) => {
+  const { accounts, txhash, amount, numbers, email } = req.body;
+  const values = [ accounts, txhash, amount, numbers, email];
+
+
+  try {
+     await pool.query(CreateUsers, values);
+    return res.status(201).json({ message: 'User created' });
+  } catch (error) {
+    console.error('Error creating user: ', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 export default router
